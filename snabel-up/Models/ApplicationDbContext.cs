@@ -9,10 +9,13 @@ namespace snabel_up.Models
 
         }
         public DbSet<Category> categories { get; set; }
+        public DbSet<SupCategory> supCategories { get; set; }
         public DbSet<Product> products { get; set; }
         public DbSet<Article> articles { get; set; }
         public DbSet<Employee> employees { get; set; }
         public DbSet<Branch> branches { get; set; }
+        public DbSet<NewsLetter> newsLetters { get; set; }
+
 
 
 

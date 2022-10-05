@@ -20,7 +20,7 @@ namespace snabel_up.Controllers
         [HttpGet("GetAllProducts")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductesAsync()
         {
-            List<Product> products = await _context.products.Include(p => p.Category).ToListAsync();
+            List<Product> products = await _context.products.Include(p => p.SupCategory).ToListAsync();
             return Ok(products);
         }
         [HttpGet("GetProductByID/{id}")]
@@ -35,10 +35,10 @@ namespace snabel_up.Controllers
 
             return Ok(product);
         }
-        [HttpGet("GetProductByCategorID")]
+        [HttpGet("GetProductBySupCategorID")]
         public async Task<ActionResult<Product>> GetProductByCategorIDAsync(int CatID)
         {
-            var products = await _context.products.Where(p => p.Category_Id == CatID).ToListAsync();
+            var products = await _context.products.Where(p => p.SupCategory_Id == CatID).ToListAsync();
 
             return Ok(products);
         }
@@ -48,9 +48,9 @@ namespace snabel_up.Controllers
             if (pro.Image == null) return BadRequest("Image Is Required ");
             if (!allowExxtention.Contains(Path.GetExtension(pro.Image.FileName).ToLower()))
                 return BadRequest("Onl .png or .jpg images are allow ");
-            var isValidCategory = await _context.categories.AnyAsync(c => c.Id == pro.Category_Id);
+            var isValidCategory = await _context.categories.AnyAsync(c => c.Id == pro.SupCategory_Id);
             if (!isValidCategory)
-                return BadRequest("Not Valide Category Id ");
+                return BadRequest("Not Valide Sup Category Id ");
             using var dataStream = new MemoryStream();
             await pro.Image.CopyToAsync(dataStream);
             var product = new Product
@@ -61,7 +61,7 @@ namespace snabel_up.Controllers
                 Quantity = pro.Quantity,
                 Image = dataStream.ToArray(),
                 Description = pro.Description,
-                Category_Id = pro.Category_Id
+                SupCategory_Id = pro.SupCategory_Id
 
 
             };
@@ -77,9 +77,9 @@ namespace snabel_up.Controllers
             var pro = await _context.products.FindAsync(id);
             if (pro == null)
                 return NotFound($"No Product was found with ID {id}");
-            var isValidCategory = await _context.categories.AnyAsync(c => c.Id == pro.Category_Id);
+            var isValidCategory = await _context.categories.AnyAsync(c => c.Id == pro.SupCategory_Id);
             if (!isValidCategory)
-                return BadRequest("Not Valide Category Id ");
+                return BadRequest("Not Valide Sup Category Id ");
             if (product.Image != null)
             {
                 if (!allowExxtention.Contains(Path.GetExtension(product.Image.FileName).ToLower()))
@@ -92,7 +92,7 @@ namespace snabel_up.Controllers
             pro.price = product.price;
             pro.Quantity = product.Quantity;
             pro.Description = product.Description;
-            pro.Category_Id = product.Category_Id;
+            pro.SupCategory_Id = product.SupCategory_Id;
             await _context.SaveChangesAsync();
             return Ok(pro);
         }

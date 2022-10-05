@@ -1,6 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace snabel_up.Models
 {
@@ -20,10 +20,12 @@ namespace snabel_up.Models
         //[RegularExpression(@"^\w+\.(png|jpg)$")]
         public byte[] Image { get; set; }
         public string Description { get; set; }
-        [ForeignKey("Category")]
-        public int Category_Id  { get; set; }
 
-        public virtual Category Category { get; set; }
+        [ForeignKey("SupCategory")]
+        public int SupCategory_Id  { get; set; }
+
+        [JsonIgnore]
+        public virtual SupCategory SupCategory { get; set; }
 
        
     }

@@ -20,7 +20,7 @@ namespace snabel_up.DTO
         public IFormFile? Image { get; set; }
         public string Description { get; set; }
         [ForeignKey("Category")]
-        public int Category_Id { get; set; }
+        public int SupCategory_Id { get; set; }
 
 
     }

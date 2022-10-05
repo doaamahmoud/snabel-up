@@ -12,8 +12,8 @@ using snabel_up.Models;
 namespace snabel_up.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220927092213_snabel")]
-    partial class snabel
+    [Migration("20221005174405_init")]
+    partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -128,7 +128,7 @@ namespace snabel_up.Migrations
                     b.ToTable("employees");
                 });
 
-            modelBuilder.Entity("snabel_up.Models.Product", b =>
+            modelBuilder.Entity("snabel_up.Models.NewsLetter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -136,8 +136,27 @@ namespace snabel_up.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int>("Category_Id")
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("newsLetters");
+                });
+
+            modelBuilder.Entity("snabel_up.Models.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -155,17 +174,54 @@ namespace snabel_up.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("SupCategory_Id")
+                        .HasColumnType("int");
+
                     b.Property<double>("price")
                         .HasColumnType("float");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Category_Id");
+                    b.HasIndex("SupCategory_Id");
 
                     b.ToTable("products");
                 });
 
+            modelBuilder.Entity("snabel_up.Models.SupCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("Category_Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category_Id");
+
+                    b.ToTable("supCategories");
+                });
+
             modelBuilder.Entity("snabel_up.Models.Product", b =>
+                {
+                    b.HasOne("snabel_up.Models.SupCategory", "SupCategory")
+                        .WithMany()
+                        .HasForeignKey("SupCategory_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SupCategory");
+                });
+
+            modelBuilder.Entity("snabel_up.Models.SupCategory", b =>
                 {
                     b.HasOne("snabel_up.Models.Category", "Category")
                         .WithMany()
