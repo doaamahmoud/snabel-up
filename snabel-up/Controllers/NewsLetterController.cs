@@ -55,13 +55,16 @@ namespace snabel_up.Controllers
 
   
         [HttpPost("AddNewsLetter")]
-        public async Task<ActionResult<Category>> CreateNewsLetterAsync(Category cate)
+        public async Task<ActionResult<NewsLetter>> CreateNewsLetterAsync(NewsLetter news)
         {
-            var category = new Category { Name = cate.Name };
-            await _context.AddAsync(category);
+            var Newsletter = new NewsLetter {
+                Name = news.Name,
+                Email=news.Email
+                   };
+            await _context.AddAsync(Newsletter);
             _context.SaveChanges();
 
-            return Ok(category);
+            return Ok(Newsletter);
         }
 
         [HttpDelete("DeleteNewsLetterByID/{id}")]
