@@ -36,12 +36,13 @@ namespace snabel_up.Controllers
             return Ok(product);
         }
         [HttpGet("GetProductBySupCategorID")]
-        public async Task<ActionResult<Product>> GetProductByCategorIDAsync(int CatID)
+        public async Task<ActionResult<Product>> GetProductByCategorIDAsync(int SupCatID)
         {
-            var products = await _context.products.Where(p => p.SupCategory_Id == CatID).ToListAsync();
+            var products = await _context.products.Where(p => p.SupCategory_Id == SupCatID).ToListAsync();
 
             return Ok(products);
         }
+
         [HttpPost("AddProduct")]
         public async Task<ActionResult<Product>> CreateProductAsync([FromForm] ProductDto pro)
         {

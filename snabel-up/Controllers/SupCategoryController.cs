@@ -38,6 +38,14 @@ namespace snabel_up.Controllers
             return Ok(Supcategory);
         }
 
+        [HttpGet("GetSupCategoriesByCategorID")]
+        public async Task<ActionResult<SupCategory>> GetSupCategoriesByCategorIDAsync(int CatID)
+        {
+            var SupCategories = await _context.supCategories.Where(p => p.Category_Id == CatID).ToListAsync();
+
+            return Ok(SupCategories);
+        }
+
 
         [HttpPut("UpdateSupCategory/{id}")]
         public async Task<IActionResult> UpdateSupCategoryAsync(int id, [FromBody] SupCategory supCategory)
@@ -56,7 +64,13 @@ namespace snabel_up.Controllers
         [HttpPost("AddSupCategory")]
         public async Task<ActionResult<SupCategory>> CreateSupCategoryAsync(SupCategory supcate)
         {
-            var Supcategory = new SupCategory { Name = supcate.Name };
+            var isValidCategory = await _context.categories.AnyAsync(c => c.Id == supcate.Category_Id);
+            if (!isValidCategory)
+                return BadRequest("Not Valide Category Id ");
+            var Supcategory = new SupCategory {
+                Name = supcate.Name,
+                Category_Id=supcate.Category_Id
+            };
             await _context.AddAsync(Supcategory);
             _context.SaveChanges();
 

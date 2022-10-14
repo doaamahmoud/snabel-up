@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using snabel_up.Models;
+using System.Text.RegularExpressions;
 
 namespace snabel_up.Controllers
 {
@@ -57,14 +58,19 @@ namespace snabel_up.Controllers
         [HttpPost("AddNewsLetter")]
         public async Task<ActionResult<NewsLetter>> CreateNewsLetterAsync(NewsLetter news)
         {
-            var Newsletter = new NewsLetter {
-                Name = news.Name,
-                Email=news.Email
-                   };
-            await _context.AddAsync(Newsletter);
-            _context.SaveChanges();
+            if (IsValid(news.Email))
+            {
+                var Newsletter = new NewsLetter
+                {
+                    Name = news.Name,
+                    Email = news.Email
+                };
+                await _context.AddAsync(Newsletter);
+                _context.SaveChanges();
 
-            return Ok(Newsletter);
+                return Ok(Newsletter);
+            }
+            else return NotFound("The Email not valid");
         }
 
         [HttpDelete("DeleteNewsLetterByID/{id}")]
@@ -80,6 +86,12 @@ namespace snabel_up.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(newsLetter);
+        }
+        private static bool IsValid(string email)
+        {
+            string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
+
+            return Regex.IsMatch(email, regex, RegexOptions.IgnoreCase);
         }
     }
 }

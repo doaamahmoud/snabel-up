@@ -16,7 +16,6 @@ namespace snabel_up.Models
         [ForeignKey("Category")]
         public int Category_Id { get; set; }
 
-        [JsonIgnore]
         public virtual Category Category { get; set; }
     }
 }
