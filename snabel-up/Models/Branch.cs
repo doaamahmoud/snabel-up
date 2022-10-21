@@ -22,7 +22,6 @@ namespace snabel_up.Models
         [Required]
         [DataType(DataType.PhoneNumber)]
         public string Phone1 { get; set; }
-
        
         [DataType(DataType.PhoneNumber)]
         public string Phone2 { get; set; }

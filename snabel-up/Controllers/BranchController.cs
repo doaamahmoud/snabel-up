@@ -60,7 +60,13 @@ namespace snabel_up.Controllers
         [HttpPost("AddBranch")]
         public async Task<ActionResult<Branch>> CreateBranchAsync(Branch brn)
         {
-            var branch = new Branch { Name = brn.Name };
+            var branch = new Branch {
+                Name = brn.Name,
+                Address=brn.Address,
+                Email=brn.Email,
+                Phone1=brn.Phone1,
+                Phone2=brn.Phone2
+            };
             await _context.AddAsync(branch);
             _context.SaveChanges();
             return Ok(branch);
