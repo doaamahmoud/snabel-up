@@ -20,7 +20,7 @@ namespace snabel_up.Controllers
         [HttpGet("GetAllSupCategories")]
         public async Task<ActionResult<IEnumerable<SupCategory>>> GetSupCategoriesAsync()
         {
-            List<SupCategory> SupCategories = await _context.supCategories.Include(p => p.Category).ToListAsync();
+            List<SupCategory> SupCategories = await _context.supCategories.ToListAsync();
             return Ok(SupCategories);
         }
 
@@ -64,12 +64,16 @@ namespace snabel_up.Controllers
         [HttpPost("AddSupCategory")]
         public async Task<ActionResult<SupCategory>> CreateSupCategoryAsync(SupCategory supcate)
         {
+            Category catById = new Category();
             var isValidCategory = await _context.categories.AnyAsync(c => c.Id == supcate.Category_Id);
             if (!isValidCategory)
                 return BadRequest("Not Valide Category Id ");
+          
+            Console.WriteLine(catById);
             var Supcategory = new SupCategory {
                 Name = supcate.Name,
-                Category_Id=supcate.Category_Id
+                Category_Id = supcate.Category_Id,
+             
             };
             await _context.AddAsync(Supcategory);
             _context.SaveChanges();
@@ -78,19 +82,19 @@ namespace snabel_up.Controllers
         }
 
         // DELETE: api/Category/5
-        [HttpDelete("DeleteCategoryByID/{id}")]
-        public async Task<IActionResult> DeleteCategoryAsync(int id)
+        [HttpDelete("DeleteSupCategoryByID/{id}")]
+        public async Task<IActionResult> DeleteSupCategoryAsync(int id)
         {
-            var category = await _context.categories.FindAsync(id);
-            if (category == null)
+            var Supcategory = await _context.supCategories.FindAsync(id);
+            if (Supcategory == null)
             {
                 return NotFound();
             }
 
-            _context.Remove(category);
+            _context.Remove(Supcategory);
             await _context.SaveChangesAsync();
 
-            return Ok(category);
+            return Ok(Supcategory);
         }
     }
 }

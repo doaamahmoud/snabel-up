@@ -24,7 +24,7 @@ namespace snabel_up.Models
         [ForeignKey("SupCategory")]
         public int SupCategory_Id  { get; set; }
 
-        public virtual SupCategory SupCategory { get; set; }
+      //  public virtual SupCategory SupCategory { get; set; }
 
        
     }
