@@ -20,7 +20,8 @@ namespace snabel_up.Controllers
         [HttpGet("GetAllProducts")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductesAsync()
         {
-            List<Product> products = await _context.products.Include(p => p.SupCategory).ToListAsync();
+
+            List<Product> products = await _context.products.ToListAsync();
             return Ok(products);
         }
         [HttpGet("GetProductByID/{id}")]
