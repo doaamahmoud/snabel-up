@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using snabel_up.DTO;
 using snabel_up.Models;
+using System.Security.Cryptography;
 
 namespace snabel_up.Controllers
 {
@@ -18,92 +19,83 @@ namespace snabel_up.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<Login> userManager;
-        private readonly IConfiguration configuration;
-
-        public AccountController(UserManager<Login> userManager,IConfiguration Configuration)
+        public static User user = new User();
+        private readonly IConfiguration _configuration;
+        public AccountController(IConfiguration configuration)
         {
-            this.userManager = userManager;
-             configuration = Configuration;
-        }
-     
-        [HttpPost("PostLogin")]
-        public async Task<IActionResult> Login(Login login)
-        {
-            if (ModelState.IsValid == false)
-            {
-                return BadRequest(ModelState);
-            }
-            //check identityt  "Create Token" ==Cookie
-            Login userModel= await userManager.FindByNameAsync(login.UserName);
-            if (userModel != null)
-            {
-                if(await userManager.CheckPasswordAsync(userModel, login.Password) == true)
-                {
-                    //toke base on Claims "Name &Roles &id " +Jti ==>unique Key Token "String"
-                    var mytoken =await GenerateToke(userModel);
-                    return Ok(new { 
-                        token=new JwtSecurityTokenHandler().WriteToken(mytoken) ,
-                        expiration= mytoken.ValidTo
-                    });
-                }
-                else
-                {
-                    //return BadRequest("User NAme and PAssword Not Valid");
-                    return Unauthorized();//401
-                }
-            }
-            return Unauthorized();
+            _configuration=configuration;
         }
 
-        [HttpPost("GetLogin")]
-        public async Task<IActionResult> GetLogin(Login login)
+        [HttpPost("Register")]
+        public async Task<ActionResult<User>> Register(UserDto userRequest)
         {
-            if (ModelState.IsValid == false)
-            {
-                return Unauthorized();
-            }
-            Login userModel = await userManager.FindByNameAsync(login.UserName);
-            if (userModel != null)
-            {
-                if (await userManager.CheckPasswordAsync(userModel, login.Password) == true)
+            CreatePasswordHash(userRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            
+            user.UserName = userRequest.UserName;
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
 
-                    return Ok();
-            }
-            else
-            {
-                return Unauthorized();
-            }
-            return Unauthorized();
+            return Ok(user);
+
         }
 
-        [NonAction]
-        public async Task<JwtSecurityToken> GenerateToke(Login userModel)
+        [HttpPost("Login")]
+
+        public async Task<ActionResult<string>> Login(UserDto userRequest)
         {
-            var claims = new List<Claim>();
-            claims.Add(new Claim("Doaa", "1234"));//Custom
-            claims.Add(new Claim(ClaimTypes.Name, userModel.UserName));
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, userModel.Id));
-            var roles = await userManager.GetRolesAsync(userModel);
-            foreach (var role in roles)
+            if(user.UserName != userRequest.UserName)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                return BadRequest("User not found");
             }
-            //Jti "Identifier Token
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            //---------------------------------(: Token :)--------------------------------------
-            var key =
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecrtKey"]));
-            var mytoken = new JwtSecurityToken(
-                audience: configuration["JWT:ValidAudience"],
-                issuer: configuration["JWT:ValidIssuer"],
-                expires: DateTime.Now.AddHours(1),
-                claims: claims,
-                signingCredentials:
-                       new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+
+            if(!VerifyPasswordHash(userRequest.Password,user.PasswordHash, user.PasswordSalt))
+            {
+                return BadRequest("Wrong Password");
+            }
+            string token = CreateToken(user);
+            return Ok(token);
+        }
+
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
+                _configuration.GetSection("Appsettings:Token").Value));
+
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims:claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials:cred
                 );
-            return mytoken;
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
+        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        {
+            using (var hmac =new HMACSHA512())
+            {
+                passwordHash = hmac.Key;
+                passwordSalt=hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private bool VerifyPasswordHash(string password,byte[] passwordHash, byte[] passwordSalt)
+        {
+            using (var hmac = new HMACSHA512(passwordSalt))
+            {
+              var  computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return computedHash.SequenceEqual(passwordHash);
+            }
+
+        }
+
 
     }
 }

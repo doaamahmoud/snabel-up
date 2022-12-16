@@ -15,7 +15,7 @@ namespace snabel_up.Models
         public DbSet<Employee> employees { get; set; }
         public DbSet<Branch> branches { get; set; }
         public DbSet<NewsLetter> newsLetters { get; set; }
-        public DbSet<Login> Logins { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
 
