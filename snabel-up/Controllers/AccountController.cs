@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using snabel_up.DTO;
 using snabel_up.Models;
 using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace snabel_up.Controllers
 {
@@ -19,21 +20,28 @@ namespace snabel_up.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        public static User user = new User();
+       // public static User user = new User();
+        private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
-        public AccountController(IConfiguration configuration)
+        public AccountController(ApplicationDbContext context, IConfiguration configuration)
         {
-            _configuration=configuration;
+            _context = context;
+            _configuration =configuration;
+
         }
 
         [HttpPost("Register")]
         public async Task<ActionResult<User>> Register(UserDto userRequest)
         {
             CreatePasswordHash(userRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
-            
+
+            User user = new User();
             user.UserName = userRequest.UserName;
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
+
+            await _context.AddAsync(user);
+            _context.SaveChanges();
 
             return Ok(user);
 
@@ -43,12 +51,15 @@ namespace snabel_up.Controllers
 
         public async Task<ActionResult<string>> Login(UserDto userRequest)
         {
-            if(user.UserName != userRequest.UserName)
+            var user = await _context.Users.FindAsync(userRequest.UserName);
+
+            if (user.UserName != null)
             {
                 return BadRequest("User not found");
             }
 
-            if(!VerifyPasswordHash(userRequest.Password,user.PasswordHash, user.PasswordSalt))
+
+            if (!VerifyPasswordHash(userRequest.Password, user.PasswordHash, user.PasswordSalt))
             {
                 return BadRequest("Wrong Password");
             }
